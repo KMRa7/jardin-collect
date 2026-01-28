@@ -203,6 +203,27 @@
       h1 { font-size: 20px; }
       input, textarea, button { font-size: 14px; }
     }
+
+    /* ★最後に～（追加依頼）：折り返しNG（nowrap）＋内容幅。入らない時は横スクロールで見切れ回避 */
+    .extra-buttons{
+      justify-content: flex-start;
+      flex-wrap: wrap;              /* 次の行へ回す */
+      overflow-x: auto;             /* どうしても入らない時は横スクロール */
+      -webkit-overflow-scrolling: touch;
+    }
+    .extra-buttons button{
+      flex: 0 0 auto;               /* 内容幅 */
+      width: auto;
+      min-width: 0;                 /* min-width:30% を打ち消す */
+      white-space: nowrap;          /* 折り返し禁止 */
+      padding: 10px 10px;
+    }
+    @media (max-width: 600px){
+      .extra-buttons button{
+        font-size: 12px;
+        padding: 10px 8px;
+      }
+    }
   </style>
 </head>
 
@@ -261,6 +282,22 @@
     <div class="label"><span class="required">必須</span>ご希望の決済方法を教えてください。</div>
     <input type="text" id="payment" placeholder="例）現金 / クレジットカード / 事前振り込み など" />
 
+    <!-- ★追加：他にも一緒に依頼したい項目（任意・複数選択） -->
+    <div class="label">
+      最後に他にも一緒にご依頼したい項目がございましたらお選びください。（任意・選択形式）
+    </div>
+    <div class="button-group extra-buttons">
+      <button type="button" onclick="toggleExtra(this)">お引っ越し</button>
+      <button type="button" onclick="toggleExtra(this)">作業代行</button>
+      <button type="button" onclick="toggleExtra(this)">エアコン洗浄</button>
+      <button type="button" onclick="toggleExtra(this)">エアコン着脱</button>
+      <button type="button" onclick="toggleExtra(this)">不用品回収</button>
+      <button type="button" onclick="toggleExtra(this)">遺品整理</button>
+      <button type="button" onclick="toggleExtra(this)">生前整理</button>
+      <button type="button" onclick="toggleExtra(this)">ハウスクリーニング</button>
+      <button type="button" onclick="toggleExtra(this)">クロス張り替え</button>
+    </div>
+
     <button class="submit-button" onclick="submitForm()" id="section-message">予約内容を送信</button>
   </div>
 
@@ -269,6 +306,9 @@
 
   <script>
     let elevatorFrom = '';
+
+    // ★追加（任意・複数選択）
+    let extraRequests = [];
 
     // LIFF初期化（必要に応じて LIFF ID を差し替え）
     document.addEventListener('DOMContentLoaded', function () {
@@ -290,6 +330,20 @@
       resetActiveButtons('.elevator-from-buttons');
       el.classList.add('active');
       elevatorFrom = el.innerText;
+    }
+
+    // ★追加：任意項目（複数選択）
+    function toggleExtra(el) {
+      const label = el.innerText.trim();
+      const idx = extraRequests.indexOf(label);
+
+      if (idx >= 0) {
+        extraRequests.splice(idx, 1);
+        el.classList.remove('active');
+      } else {
+        extraRequests.push(label);
+        el.classList.add('active');
+      }
     }
 
     function submitForm() {
@@ -330,7 +384,10 @@
 ・${currentFloor}
 
 【決済方法】
-・${payment}`;
+・${payment}
+
+【追加で一緒に依頼したい項目（任意）】
+・${extraRequests.length ? extraRequests.join(' / ') : '（未選択）'}`;
 
       liff.sendMessages([{ type: 'text', text: textMessage }])
         .then(() => {
